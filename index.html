@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionAI - Image Detection System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-models/coco-ssd@2.2.3/dist/coco-ssd.min.js" defer></script>
+    <script type="module" src="js/app.js" defer></script>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" aria-label="Main Navigation">
+            <div class="logo-container">
+                <i class="fa-solidxl fa-eye system-logo"></i>
+                <h1 class="system-title">Vision<span>AI</span></h1>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-target="dashboard-page" aria-label="Go to Dashboard">
+                    <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+                </button>
+                <button class="nav-btn" data-target="detection-page" aria-label="Go to Detection Workspace">
+                    <i class="fa-solid fa-expand"></i> <span>Detection</span>
+                </button>
+                <button class="nav-btn" data-target="history-page" aria-label="Go to History">
+                    <i class="fa-solid fa-history"></i> <span>History</span>
+                </button>
+                <button class="nav-btn" data-target="statistics-page" aria-label="Go to Statistics">
+                    <i class="fa-solid fa-chart-line"></i> <span>Statistics</span>
+                </button>
+                <button class="nav-btn" data-target="settings-page" aria-label="Go to Settings">
+                    <i class="fa-solid fa-sliders"></i> <span>Settings</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <p>&copy; 2026 VisionAI Project</p>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header">
+                <button id="sidebar-toggle" class="mobile-toggle-btn" aria-label="Toggle Sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="header-status">
+                    <span id="model-status-badge" class="badge badge-warning">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Initializing AI Engine...
+                    </span>
+                </div>
+                <div class="header-actions">
+                    <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Dark/Light Mode">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div id="notification-container" class="notification-container" aria-live="polite"></div>
+
+            <div class="content-body">
+                
+                <section id="dashboard-page" class="page-view active">
+                    <div class="welcome-banner">
+                        <h2>Welcome to VisionAI System</h2>
+                        <p>Analyze static graphics, track objects locally, and gather instant metric breakdown summaries natively in your sandbox environment.</p>
+                        <button class="btn btn-primary shortcut-upload-btn" data-action="go-detect">
+                            <i class="fa-solid fa-plus"></i> Begin New Inspection
+                        </button>
+                    </div>
+                    <div class="dashboard-grid">
+                        <div class="stat-card glass-panel">
+                            <div class="icon-wrapper blue"><i class="fa-solid fa-images"></i></div>
+                            <div class="stat-info">
+                                <h3 id="dash-total-images">0</h3>
+                                <p>Processed Files</p>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-panel">
+                            <div class="icon-wrapper green"><i class="fa-solid fa-bullseye"></i></div>
+                            <div class="stat-info">
+                                <h3 id="dash-total-objects">0</h3>
+                                <p>Objects Logged</p>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-panel">
+                            <div class="icon-wrapper purple"><i class="fa-solid fa-star"></i></div>
+                            <div class="stat-info">
+                                <h3 id="dash-top-object">—</h3>
+                                <p>Top Category</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="detection-page" class="page-view">
+                    <div class="workspace-layout">
+                        <div class="workspace-panel-left">
+                            <div id="drop-zone" class="upload-card glass-panel">
+                                <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.webp" hidden />
+                                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                                <h3>Drag & drop structural image source file</h3>
+                                <p>Supports JPG, JPEG, PNG, WEBP files up to 15MB</p>
+                                <button class="btn btn-secondary" onclick="document.getElementById('file-input').click()">
+                                    Browse Storage Matrix
+                                </button>
+                            </div>
+
+                            <div id="preview-wrapper" class="preview-card glass-panel hidden">
+                                <div class="canvas-container">
+                                    <img id="source-preview-image" alt="Inspection source asset node" />
+                                    <canvas id="detection-overlay-canvas"></canvas>
+                                </div>
+                                <div class="preview-controls">
+                                    <button id="clear-upload-btn" class="btn btn-danger">
+                                        <i class="fa-solid fa-trash"></i> Drop Asset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="workspace-panel-right">
+                            <div class="glass-panel results-panel">
+                                <h3>Inspection Results Panel</h3>
+                                <hr class="divider">
+                                <div id="detection-loader" class="loader-box hidden">
+                                    <div class="spinner"></div>
+                                    <p>Processing Tensor Calculations...</p>
+                                </div>
+                                <div id="empty-results-msg" class="empty-state-msg">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    <p>Awaiting analytical frame injection to map confidence coordinates.</p>
+                                </div>
+                                <div id="results-meta-data" class="meta-grid hidden">
+                                    <div class="meta-item"><strong>Objects:</strong> <span id="res-meta-count">0</span></div>
+                                    <div class="meta-item"><strong>Time:</strong> <span id="res-meta-time">0ms</span></div>
+                                    <div class="meta-item"><strong>Status:</strong> <span class="badge badge-success">Passed</span></div>
+                                </div>
+                                <div id="results-cards-container" class="results-stack"></div>
+                                <div id="export-actions-wrapper" class="export-button-group hidden">
+                                    <button id="export-img-btn" class="btn btn-sm btn-action"><i class="fa-solid fa-file-image"></i> Render Image</button>
+                                    <button id="export-json-btn" class="btn btn-sm btn-action"><i class="fa-solid fa-code"></i> JSON Struct</button>
+                                    <button id="export-txt-btn" class="btn btn-sm btn-action"><i class="fa-solid fa-file-lines"></i> Manifest</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="history-page" class="page-view">
+                    <div class="glass-panel historical-ledger-container">
+                        <div class="ledger-header">
+                            <h3>Detection Audit Registry</h3>
+                            <button id="clear-history-btn" class="btn btn-danger btn-sm">
+                                <i class="fa-solid fa-dumpster-fire"></i> Purge Records Cache
+                            </button>
+                        </div>
+                        <div class="filter-toolbar">
+                            <div class="search-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="history-search-input" placeholder="Search by matched object token...">
+                            </div>
+                            <div class="dropdown-box">
+                                <select id="history-sort-select">
+                                    <option value="date-desc">Timestamp: Newest First</option>
+                                    <option value="date-asc">Timestamp: Oldest First</option>
+                                    <option value="conf-desc">Confidence: High to Low</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="history-table" id="history-table-element">
+                                <thead>
+                                    <tr>
+                                        <th>Frame Preview</th>
+                                        <th>Timestamp ID</th>
+                                        <th>Detections Extracted</th>
+                                        <th>Metrics Summary</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table-body">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="statistics-page" class="page-view">
+                    <div class="statistics-dashboard-layout">
+                        <div class="stat-hero-row">
+                            <div class="glass-panel complex-metric-card">
+                                <h4>Global Precision Mean</h4>
+                                <h2 id="stats-avg-accuracy">0.00%</h2>
+                                <div class="progress-bar-container"><div id="accuracy-progress" class="progress-fill"></div></div>
+                            </div>
+                            <div class="glass-panel complex-metric-card">
+                                <h4>Total System Throughput</h4>
+                                <h2 id="stats-total-images">0 Frames</h2>
+                                <p class="subtext">Processed locally natively using CPU/GPU pipelines</p>
+                            </div>
+                        </div>
+                        <div class="glass-panel breakdown-card">
+                            <h3>Density and Distribution Registry</h3>
+                            <div id="stats-distribution-container" class="distribution-list">
+                                </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="settings-page" class="page-view">
+                    <div class="glass-panel narrow-panel">
+                        <h3>System Configuration Matrices</h3>
+                        <hr class="divider">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label for="setting-min-confidence">Engine Classification Guard (Minimum Confidence Threshold)</label>
+                                <p>Filters out lower percentage target hits during runtime calculation.</p>
+                            </div>
+                            <div class="setting-input-wrapper">
+                                <input type="range" id="setting-min-confidence" min="20" max="95" value="60">
+                                <span id="confidence-range-val">60%</span>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label for="setting-max-boxes">Max Bounding Box Render Ceiling</label>
+                                <p>Controls the maximum concurrent box elements overlayed per visual context.</p>
+                            </div>
+                            <div class="setting-input-wrapper">
+                                <input type="number" id="setting-max-boxes" min="1" max="50" value="20" class="form-input">
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <button id="save-settings-btn" class="btn btn-primary">Commit Config Shifts</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
