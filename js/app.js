@@ -2,6 +2,7 @@ import { uiManager } from "./ui.js";
 import { aiDetector } from "./detector.js";
 import { localHistory } from "./history.js";
 
+
 class ApplicationController {
   constructor() {
     this.config = {
