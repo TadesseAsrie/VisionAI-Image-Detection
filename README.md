@@ -55,4 +55,5 @@ This project uses:
 - Face recognition
 - OCR text extraction
 - Cloud storage integration
+- then detect dynamically 
 
