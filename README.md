@@ -56,4 +56,4 @@ This project uses:
 - OCR text extraction
 - Cloud storage integration
 - then detect dynamically 
-
+#if you like Please give star
