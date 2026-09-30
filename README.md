@@ -47,6 +47,7 @@ This project uses:
 - JPEG
 - PNG
 - WEBP
+- svg
 
 ## Future Enhancements
 
